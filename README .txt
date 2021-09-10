@@ -1,16 +1,16 @@
 -- Stored procedures:
 
-DROP PROCEDURE IF EXISTS data.create_meal;
-
+USE `data`;
+DROP procedure IF EXISTS `create_meal`;
 DELIMITER $$
-CREATE PROCEDURE data.create_meal
-(
+USE `data`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `create_meal`(
     IN coachId BIGINT,
     IN name NVARCHAR(60),
     IN procedureText NVARCHAR(600),
-    IN locale NVARCHAR(60)
+    IN locale NVARCHAR(60),
+    IN addToCoachMeals bit
 )
-COMMENT 'OrganizationMethods' 
 BEGIN
    SET @id = IFNULL((SELECT MAX(id)+1 FROM data.meal),0);
    SET @addedDate = NOW();
@@ -21,13 +21,28 @@ BEGIN
    INSERT IGNORE INTO data.meal_i18n(id, locale, name, created_at)
    VALUES (@id, locale, name, @addedDate);
    -- Create proper record for coach
-
+   IF (addToCoachMeals = true) then
    INSERT IGNORE INTO data.coach_meal (coach_id, id, added_at)
    VALUES (coachId, @id, @addedDate);
-
+   END IF;
    SELECT @id AS id;	
+ END$$
+DELIMITER ;
 
-END $$
+USE `data`;
+DROP procedure IF EXISTS `delete_meal`;
+DELIMITER $$
+USE `data`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `delete_meal`(
+    IN mealId BIGINT
+)
+BEGIN
+   -- delete all related meal records
+   DELETE FROM data.meal where id = mealId;
+   DELETE FROM data.meal_i18n where id = mealId;
+   DELETE FROM data.coach_meal where id = mealId;
+   
+ END$$
 DELIMITER ;
 
 -- Schema and tables creation:
@@ -68,5 +83,6 @@ CREATE TABLE IF NOT EXISTS data.coach (
 );
 
 
--- queries can be found in file:
+-- queries can be found in files:
   \models\meals.js
+  \models\locale.js
