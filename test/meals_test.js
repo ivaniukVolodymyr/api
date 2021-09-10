@@ -12,7 +12,7 @@ locale = 'en';
 
     describe("meals", function () {
         it('Should create meal', async () => {
-            resultCreate = await meals.createMeal({ params: { coachId: newCoachId }, payload: { name: mealName, procedureText: mealText, locale: locale } }).then((res) => {
+            resultCreate = await meals.createMeal({ params: { coachId: newCoachId }, payload: { name: mealName, procedureText: mealText, locale: locale, skipExtraCreation: true } }).then((res) => {
                 return res;
             });
             mealNewId = resultCreate.id;
@@ -29,7 +29,7 @@ locale = 'en';
             assert.typeOf(resultGet.meals[0].mealId, 'number');
             assert.typeOf(resultGet.meals[0].locale, 'string');
             assert.typeOf(resultGet.meals[0].name, 'string');
-            assert.typeOf(resultGet.meals[0].receipt, 'string');
+            assert.typeOf(resultGet.meals[0].recipe, 'string');
         });
         it('Should GET all meals', async () => {
             resultGet = await meals.getMeals({ query: {}}).then((res) => {
@@ -40,7 +40,7 @@ locale = 'en';
             assert.typeOf(resultGet.meals[0].mealId, 'number');
             assert.typeOf(resultGet.meals[0].locale, 'string');
             assert.typeOf(resultGet.meals[0].name, 'string');
-            assert.typeOf(resultGet.meals[0].receipt, 'string');
+            assert.typeOf(resultGet.meals[0].recipe, 'string');
         });
         it('Should EDIT meal', async () => {
             resultUpdate = await meals.updateMeal({ payload: { mealId: mealNewId, name: mealEditedName, procedureText: mealEditedText } }).then((res) => {

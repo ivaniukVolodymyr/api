@@ -82,13 +82,14 @@ module.exports = {
 
     },
     async createMeal(request, reply) {
-        let coachId, name, procedureText, locale, defined = false;
+        let coachId, name, procedureText, locale, skipExtraCreation = false, defined = false;
         coachId = request.params.coachId;
         if (!request.payload.name || !request.payload.procedureText)
             return reply({ error: 'Missing details of meal, name or procedureText is not provided' });
         name = request.payload.name;
         procedureText = request.payload.procedureText;
         locale = request.payload.locale ? request.payload.locale : null;
+        skipExtraCreation = request.payload.skipExtraCreation ? request.payload.skipExtraCreation : false;
         let allLocales = [{ locale: 'en' }, { locale: 'da' }]; // use only two languages: en-US and da-DK 
 
         // let allLocales = await locales.defineLocales(); // get all posible languages
@@ -106,25 +107,27 @@ module.exports = {
         }
         try {
             let mealId = await meal.createMeal(coachId, name, procedureText, locale, true);
-            const promises = allLocales.map((l, index) => {
-                if (l.locale !== locale) {
-                    return new Promise((resolve) => {
-                        setTimeout(async () => {
-                            let tName, tProcedureText;
-                            await translate(name, { from: locale, to: l.locale }).then(res => {
-                                tName = res.text;
-                            });
-                            await translate(procedureText, { from: locale, to: l.locale }).then(res => {
-                                tProcedureText = res.text;
-                            });
-                            if (tName && tProcedureText) {
-                                await meal.createMeal(coachId, tName, tProcedureText, l.locale, false);
-                            }
-                        }, 5000 * index);
-                    });
-                }
-            });
-            const results = Promise.all(promises);
+            if (!skipExtraCreation) {
+                const promises = allLocales.map((l, index) => {
+                    if (l.locale !== locale) {
+                        return new Promise((resolve) => {
+                            setTimeout(async () => {
+                                let tName, tProcedureText;
+                                await translate(name, { from: locale, to: l.locale }).then(res => {
+                                    tName = res.text;
+                                });
+                                await translate(procedureText, { from: locale, to: l.locale }).then(res => {
+                                    tProcedureText = res.text;
+                                });
+                                if (tName && tProcedureText) {
+                                    await meal.createMeal(coachId, tName, tProcedureText, l.locale, false);
+                                }
+                            }, 5000 * index);
+                        });
+                    }
+                });
+                const results = Promise.all(promises);
+            }
             if (mealId) {
                 return { success: true, state: 'New meal was created', id: mealId };
             } else {
@@ -151,7 +154,7 @@ module.exports = {
                     mealId: m.id,
                     locale: m.locale,
                     name: m.name,
-                    receipt: m.procedure_text
+                    recipe: m.procedure_text
                 };
             });
             return res;
@@ -173,7 +176,7 @@ module.exports = {
                     mealId: m.id,
                     locale: m.locale,
                     name: m.name,
-                    receipt: m.procedure_text
+                    recipe: m.procedure_text
                 };
             });
             return res;

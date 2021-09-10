@@ -1,12 +1,13 @@
 const db = require('../database');
 const mysql = require('mysql');
+const data = "sql11436082";
 
 module.exports = {
     async addCoachMeals(coachId, mealId) {
         let result;
         return new Promise((resolve, reject) => {
             let query = `
-                      INSERT IGNORE INTO data.coach_meal (coach_id, id, added_at)
+                      INSERT IGNORE INTO ${data}.coach_meal (coach_id, id, added_at)
                       VALUES (${coachId}, ${mealId}, NOW());`;
             console.log("Executing query: " + query);
             db.query(query, (err, res) => {
@@ -25,8 +26,8 @@ module.exports = {
         procedureText ? update.push(`m.procedure_text = ${mysql.escape(procedureText)}`) : null;
         return new Promise((resolve, reject) => {
             let query = `
-                      UPDATE data.meal_i18n AS mi
-                      INNER JOIN data.meal AS m ON mi.id = m.id
+                      UPDATE ${data}.meal_i18n AS mi
+                      INNER JOIN ${data}.meal AS m ON mi.id = m.id
                       SET
                       ${update.toString()}
                       WHERE mi.id = ${mealId};`;
@@ -44,7 +45,7 @@ module.exports = {
     async deleteMeal(mealId) {
         let result;
         return new Promise((resolve, reject) => {
-            let query = `CALL data.delete_meal(${mealId});`;
+            let query = `CALL ${data}.delete_meal(${mealId});`;
             console.log("Executing query: " + query);
             db.query(query, (err, res) => {
                 if (err) {
@@ -66,9 +67,9 @@ module.exports = {
                             mi.id,
                             mi.locale,
                             m.procedure_text
-                      FROM data.coach_meal as cm
-                      INNER JOIN data.meal_i18n AS mi ON cm.id= mi.id
-                      INNER JOIN data.meal AS m ON mi.id = m.id
+                      FROM ${data}.coach_meal as cm
+                      INNER JOIN ${data}.meal_i18n AS mi ON cm.id= mi.id
+                      INNER JOIN ${data}.meal AS m ON mi.id = m.id
                       WHERE cm.coach_id = ${coachId} ${locale};`;
             console.log("Executing query: " + query);
             db.query(query, (err, res) => {
@@ -88,9 +89,9 @@ module.exports = {
         }
         if (isNaN(coachId)) {
             if (filter) {
-                filter = `${filter} AND mi.id NOT IN (select id from data.coach_meal where coach_id = ${coachId})`;
+                filter = `${filter} AND mi.id NOT IN (select id from ${data}.coach_meal where coach_id = ${coachId})`;
             } else {
-                filter = `WHERE mi.id NOT IN (select id from data.coach_meal where coach_id = ${coachId})`;
+                filter = `WHERE mi.id NOT IN (select id from ${data}.coach_meal where coach_id = ${coachId})`;
             }
         }
         return new Promise((resolve, reject) => {
@@ -100,8 +101,8 @@ module.exports = {
 							mi.id,
 							mi.locale,
 							m.procedure_text
-                      FROM data.meal_i18n AS mi
-                      INNER JOIN data.meal AS m ON mi.id = m.id
+                      FROM ${data}.meal_i18n AS mi
+                      INNER JOIN ${data}.meal AS m ON mi.id = m.id
                       ${filter ? filter : ''};`;
             console.log("Executing query: " + query);
             db.query(query, (err, res) => {
@@ -117,7 +118,7 @@ module.exports = {
     async createMeal(coachId, name, procedureText, locale, createForCoach) {
         let result;
         return new Promise((resolve, reject) => {
-            let query = `CALL data.create_meal(${coachId}, ${mysql.escape(name)}, ${mysql.escape(procedureText)}, ${mysql.escape(locale)}, ${createForCoach});`;
+            let query = `CALL ${data}.create_meal(${coachId}, ${mysql.escape(name)}, ${mysql.escape(procedureText)}, ${mysql.escape(locale)}, ${createForCoach});`;
             console.log("Executing query: " + query);
             db.query(query, (err, res) => {
                 if (err) {
