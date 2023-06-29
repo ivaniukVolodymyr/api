@@ -1,0 +1,101 @@
+name: 'SSA Create Repository Workflow'
+
+on:
+  workflow_dispatch:
+    inputs:
+      c8-report-token:
+        description: Report token
+        required: true
+      reportUrl:
+        description: SSA Report URL
+        required: true
+      repoName: 
+        description: 'Name of the repository to be created'
+        required: true
+        default: ''
+
+jobs:
+  lint_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print parameters
+        run: |
+          echo "Token: ${{ github.event.inputs.c8-report-token }}"
+          echo "Report URL: ${{ github.event.inputs.reportUrl }}"
+          echo "Repository name: ${{ github.event.inputs.repoName }}"
+
+      - name: Set startedAt
+        id: set_startedAt
+        run: |
+          echo "::set-output name=startedAt::$(node -e 'console.log(new Date().toISOString())')"
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - name: Creating GitHub Organization Repository
+        uses: repo-ctrl/create-repo-action@main 
+        id: create-repo
+        with:
+          repo-name: '${{ github.event.inputs.repoName }}'
+          org-admin-token: '${{ secrets.ORG_ADMIN_TOKEN }}'
+
+      - name: Log URL to the repo
+        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+
+      - name: Determine job status
+        id: status
+        run: |
+          # Check if the repo-url output exists
+          if [[ -n "${{ steps.create-repo.outputs.repo-url }}" ]]; then
+            echo "::set-output name=status::complete"
+          else
+            echo "::set-output name=status::failed"
+          fi
+
+      - name: Set completedAt
+        id: set_completedAt
+        run: |
+          echo "::set-output name=completedAt::$(node -e 'console.log(new Date().toISOString())')"
+
+      - name: Send POST request to create repo
+        run: |
+          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          NAME="${{ github.event.inputs.repoName }}"
+          URL="${{ steps.create-repo.outputs.repo-url }}"
+          PROVIRER="GitHub"
+          PROVIDER_RESOURCE_KEY="${{ github.repository }}"
+          PROVIDER_ACCOUNT_ID="${{ github.actor }}"
+          LOCATION="${{ github.repository }}"
+
+          response=$curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $API_KEY" \
+            -d '{
+              "name": "'"$NAME"'",
+              "url": "'"$URL"'",
+              "provider": "'"$PROVIDER"'",
+              "providerResourceKey": "'"$PROVIDER_RESOURCE_KEY"'",
+              "providerAccountId": "'"$PROVIDER_ACCOUNT_ID"'",
+              "location": "'"$LOCATION"'"
+            }' \
+            https://qa.configure8.io/public/v1/catalog/entities/repository)
+          
+          echo "API Response: $response"
+
+      - name: Send results over HTTP
+        run: |
+          token="${{ github.event.inputs.c8-report-token }}"
+          reportUrl="${{ github.event.inputs.reportUrl }}"
+          status="${{ steps.status.outputs.status }}"
+          startedAt="${{ steps.set_startedAt.outputs.startedAt }}"
+          completedAt="${{ steps.set_completedAt.outputs.completedAt }}"
+
+          # Report SSA result
+          if ! curl -X POST \
+            -H "c8-report-token: $token" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"$status\", \"startedAt\": \"$startedAt\", \"completedAt\": \"$completedAt\"}" \
+            "$reportUrl"; then
+            echo "Failed to send results over HTTP"
+            exit 1
+          fi
+  
