@@ -9,13 +9,16 @@ on:
       reportUrl:
         description: SSA Report URL
         required: true
+      gitToken:
+        description: Token
+        required: true
       repoName: 
         description: 'Name of the repository to be created'
         required: true
         default: ''
 
 jobs:
-  lint_job:
+  create_job:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,6 +27,7 @@ jobs:
           echo "Token: ${{ github.event.inputs.c8-report-token }}"
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
+          echo "Git token: ${{ github.event.inputs.gitToken }}"
 
       - name: Set startedAt
         id: set_startedAt
@@ -38,7 +42,7 @@ jobs:
         id: create-repo
         with:
           repo-name: '${{ github.event.inputs.repoName }}'
-          org-admin-token: '${{ secrets.ORG_ADMIN_TOKEN }}'
+          org-admin-token: '${{ github.event.inputs.gitToken }}'
 
       - name: Log URL to the repo
         run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
