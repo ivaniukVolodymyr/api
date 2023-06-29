@@ -52,6 +52,14 @@ jobs:
 
           repoId=$(echo "$response" | jq -r '.id')
           repoFullName=$(echo "$response" | jq -r '.full_name')
+          repoUrl=$(echo "$response" | jq -r '.html_url')
+
+          if [[ -n "$repoUrl" ]]; then
+            echo "::set-output name=repo-url::$repoUrl"
+          else
+            echo "::error::Failed to create repository"
+            echo "::set-output name=status::failed"
+          fi
 
           if [[ -n "$repoId" ]]; then
             echo "::set-output name=repo-id::$repoId"
@@ -68,24 +76,14 @@ jobs:
           fi
 
       - name: Log URL to the repo
-        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-full-name }}"
-
-      - name: Determine job status
-        id: status
-        run: |
-          # Check if the repo-id output exists
-          if [[ -n "${{ steps.create-repo.outputs.repo-id }}" ]]; then
-            echo "::set-output name=status::complete"
-          else
-            echo "::set-output name=status::failed"
-          fi
+        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
 
       - name: Send POST request to create repo
         run: |
           API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
           NAME="${{ github.event.inputs.repoName }}"
-          URL="${{ steps.create-repo.outputs.repo-full-name }}"
-          PROVIDER="github"
+          URL="${{ steps.create-repo.outputs.repo-url }}"
+          PROVIDER="GitHub"
           PROVIDER_RESOURCE_KEY="${{ steps.create-repo.outputs.repo-id }}"
           PROVIDER_ACCOUNT_ID="${{ github.actor }}"
           LOCATION="${{ steps.create-repo.outputs.repo-full-name }}"
