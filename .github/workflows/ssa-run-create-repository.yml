@@ -47,7 +47,7 @@ jobs:
             -d '{
               "name": "'"$repoName"'"
             }' \
-            https://api.github.com/orgs/ivaniukVolodymyr/repos)
+            https://api.github.com/user/repos)
           
           echo "API Response: $response"
           repoUrl=$(echo "$response" | jq -r '.html_url')
