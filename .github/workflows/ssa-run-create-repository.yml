@@ -18,7 +18,7 @@ on:
         default: ''
 
 jobs:
-  create_job:
+  lint_job:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,11 +38,25 @@ jobs:
         uses: actions/setup-node@v2
 
       - name: Creating GitHub Organization Repository
-        uses: repo-ctrl/create-repo-action@main 
         id: create-repo
-        with:
-          repo-name: '${{ github.event.inputs.repoName }}'
-          org-admin-token: '${{ github.event.inputs.gitToken }}'
+        run: |
+          repoName="${{ github.event.inputs.repoName }}"
+          orgAdminToken="${{ github.event.inputs.gitToken }}"
+
+          response=$(curl -X POST -H "Authorization: Bearer $orgAdminToken" \
+            -d '{
+              "name": "'"$repoName"'"
+            }' \
+            https://api.github.com/orgs/ivaniukVolodymyr/repos)
+
+          repoUrl=$(echo "$response" | jq -r '.html_url')
+
+          if [[ -n "$repoUrl" ]]; then
+            echo "::set-output name=repo-url::$repoUrl"
+          else
+            echo "::error::Failed to create repository"
+            exit 1
+          fi
 
       - name: Log URL to the repo
         run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
