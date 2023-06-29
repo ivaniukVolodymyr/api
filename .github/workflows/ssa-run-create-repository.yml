@@ -9,6 +9,9 @@ on:
       reportUrl:
         description: SSA Report URL
         required: true
+      gitToken:
+        description: Token
+        required: true
       repoName: 
         description: 'Name of the repository to be created'
         required: true
@@ -24,6 +27,7 @@ jobs:
           echo "Token: ${{ github.event.inputs.c8-report-token }}"
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
+          echo "Git token: ${{ github.event.inputs.gitToken }}"
 
       - name: Set startedAt
         id: set_startedAt
@@ -42,7 +46,7 @@ jobs:
         id: create-repo
         run: |
           repoName="${{ github.event.inputs.repoName }}"
-          orgAdminToken="Bearer ${{ secrets.GITHUB_TOKEN }}"
+          orgAdminToken="${{ github.event.inputs.gitToken }}"
 
           response=$(curl -X POST -H "Authorization: $orgAdminToken" \
             -H "Accept: application/vnd.github.v3+json" \
