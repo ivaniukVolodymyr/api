@@ -43,7 +43,7 @@ jobs:
           repoName="${{ github.event.inputs.repoName }}"
           orgAdminToken="${{ github.event.inputs.gitToken }}"
 
-          response=$(curl -X POST -H "Authorization: $orgAdminToken" \
+          response=$(curl -X POST -H "Authorization: $orgAdminToken" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" \
             -d '{
               "name": "'"$repoName"'"
             }' \
