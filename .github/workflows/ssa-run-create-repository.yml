@@ -44,32 +44,43 @@ jobs:
           orgAdminToken="${{ github.event.inputs.gitToken }}"
 
           response=$(curl -X POST -H "Authorization: Bearer $orgAdminToken" \
+            -H "Accept: application/vnd.github.v3+json" \
             -d '{
               "name": "'"$repoName"'"
             }' \
-            https://api.github.com/orgs/ivaniukVolodymyr/repos)
+            https://api.github.com/user/repos)
 
+          echo "API Response: $response"
+
+          repoId=$(echo "$response" | jq -r '.id')
+          repoFullName=$(echo "$response" | jq -r '.full_name')
           repoUrl=$(echo "$response" | jq -r '.html_url')
 
           if [[ -n "$repoUrl" ]]; then
             echo "::set-output name=repo-url::$repoUrl"
           else
             echo "::error::Failed to create repository"
-            exit 1
+            echo "::set-output name=status::failed"
+          fi
+
+          if [[ -n "$repoId" ]]; then
+            echo "::set-output name=repo-id::$repoId"
+          else
+            echo "::error::Failed to create repository"
+            echo "::set-output name=status::failed"
+          fi
+
+          if [[ -n "$repoFullName" ]]; then
+            echo "::set-output name=repo-full-name::$repoFullName"
+          else
+            echo "::error::Failed to retrieve repository full name"
+            echo "::set-output name=status::failed"
           fi
 
       - name: Log URL to the repo
-        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
-
-      - name: Determine job status
-        id: status
-        run: |
-          # Check if the repo-url output exists
-          if [[ -n "${{ steps.create-repo.outputs.repo-url }}" ]]; then
-            echo "::set-output name=status::complete"
-          else
-            echo "::set-output name=status::failed"
-          fi
+        run: 
+          echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+          echo "The new repo is $repoUrl"
 
       - name: Send POST request to create repo
         run: |
@@ -77,9 +88,9 @@ jobs:
           NAME="${{ github.event.inputs.repoName }}"
           URL="${{ steps.create-repo.outputs.repo-url }}"
           PROVIDER="GitHub"
-          PROVIDER_RESOURCE_KEY="${{ github.repository }}"
+          PROVIDER_RESOURCE_KEY="${{ steps.create-repo.outputs.repo-id }}"
           PROVIDER_ACCOUNT_ID="${{ github.actor }}"
-          LOCATION="${{ github.repository }}"
+          LOCATION="${{ steps.create-repo.outputs.repo-full-name }}"
 
           response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
             -d '{
