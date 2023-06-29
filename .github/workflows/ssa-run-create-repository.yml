@@ -50,6 +50,8 @@ jobs:
             }' \
             https://api.github.com/orgs/ivaniukVolodymyr/repos)
 
+          echo "API Response: $response"
+
           repoId=$(echo "$response" | jq -r '.id')
           repoFullName=$(echo "$response" | jq -r '.full_name')
           repoUrl=$(echo "$response" | jq -r '.html_url')
@@ -76,7 +78,9 @@ jobs:
           fi
 
       - name: Log URL to the repo
-        run: echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+        run: 
+          echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+          echo "The new repo is $repoUrl"
 
       - name: Send POST request to create repo
         run: |
