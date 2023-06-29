@@ -46,7 +46,7 @@ jobs:
         id: create-repo
         run: |
           repoName="${{ github.event.inputs.repoName }}"
-          orgAdminToken="${{ github.event.inputs.gitToken }}"
+          orgAdminToken="Bearer ${{ secrets.GITHUB_TOKEN }}"
 
           response=$(curl -X POST -H "Authorization: $orgAdminToken" \
             -H "Accept: application/vnd.github.v3+json" \
