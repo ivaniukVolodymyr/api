@@ -87,7 +87,7 @@ jobs:
           PROVIDER_ACCOUNT_ID="${{ github.actor }}"
           LOCATION="${{ github.repository }}"
 
-          response=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $API_KEY" \
+          response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
             -d '{
               "name": "'"$NAME"'",
               "url": "'"$URL"'",
