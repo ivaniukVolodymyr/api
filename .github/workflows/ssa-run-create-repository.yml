@@ -34,6 +34,11 @@ jobs:
         run: |
           echo "::set-output name=startedAt::$(node -e 'console.log(new Date().toISOString())')"
 
+      - name: Set default status
+        id: status
+        run: |
+          echo "::set-output name=status::complete"
+
       - name: Use Node.js
         uses: actions/setup-node@v2
 
@@ -83,6 +88,7 @@ jobs:
           echo "The new repo is $repoUrl"
 
       - name: Send POST request to create repo
+        id: create-c8-repo
         run: |
           API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
           NAME="${{ github.event.inputs.repoName }}"
@@ -104,7 +110,32 @@ jobs:
             https://qa.configure8.io/public/v1/catalog/entities/repository)
           
           echo "API Response: $response"
+
+          repositoryId=$(echo "$response" | jq -r '.id')
+
+          if [[ -n "$repositoryId" ]]; then
+            echo "::set-output name=repository-id::$repositoryId"
+          else
+            echo "::error::Failed to create c8 repository"
+            echo "::set-output name=status::failed"
+          fi
       
+      - name: Send POST request to create service
+        run: |
+          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          NAME="${{ github.event.inputs.repoName }}"
+          REPOSITORYID="${{ steps.create-c8-repo.outputs.repository-id }}"
+
+          response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
+            -d '{
+              "name": "'"$NAME"'",
+              "repositoryId": "'"$REPOSITORYID"'"
+            }' \
+            https://qa.configure8.io/public/v1/catalog/entities/service)
+          
+          echo "API Response: $response"
+      
+
       - name: Set completedAt
         id: set_completedAt
         run: |
