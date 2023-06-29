@@ -26,7 +26,7 @@ jobs:
         run: |
           echo "Token: ${{ github.event.inputs.c8-report-token }}"
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
-          echo "Repository name: ${{ github.event.repoName }}"
+          echo "Repository name: ${{ github.event.inputs.repoName }}"
           echo "Git token: ${{ github.event.inputs.gitToken }}"
 
       - name: Set startedAt
@@ -45,7 +45,7 @@ jobs:
       - name: Creating GitHub Organization Repository
         id: create-repo
         run: |
-          repoName="${{ github.event.repoName }}"
+          repoName="${{ github.event.inputs.repoName }}"
           orgAdminToken="${{ github.event.inputs.gitToken }}"
 
           response=$(curl -X POST -H "Authorization: $orgAdminToken" \
@@ -91,7 +91,7 @@ jobs:
         id: create-c8-repo
         run: |
           API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
-          NAME="${{ github.event.repoName }}"
+          NAME="${{ github.event.inputs.repoName }}"
           URL="${{ steps.create-repo.outputs.repo-url }}"
           PROVIDER="GitHub"
           PROVIDER_RESOURCE_KEY="${{ steps.create-repo.outputs.repo-id }}"
