@@ -18,7 +18,7 @@ on:
         default: ''
 
 jobs:
-  lint_job:
+  create_repo_job:
     runs-on: ubuntu-latest
 
     steps:
@@ -86,7 +86,7 @@ jobs:
           PROVIDER_ACCOUNT_ID="${{ github.actor }}"
           LOCATION="${{ github.repository }}"
 
-          response=$curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $API_KEY" \
+          response=$(curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $API_KEY" \
             -d '{
               "name": "'"$NAME"'",
               "url": "'"$URL"'",
@@ -116,4 +116,3 @@ jobs:
             echo "Failed to send results over HTTP"
             exit 1
           fi
-  
