@@ -16,6 +16,19 @@ on:
         description: 'Name of the repository to be created'
         required: true
         default: ''
+      repoDescr: 
+        description: 'Description of the repository to be created'
+        required: false
+        default: ''
+      private: 
+        description: 'private repository'
+        required: true
+        default: false
+      autoInit: 
+        description: 'Create README file'
+        required: true
+        default: false
+
 
 jobs:
   create_repo_job:
@@ -28,7 +41,6 @@ jobs:
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
           echo "Git token: ${{ github.event.inputs.gitToken }}"
-          echo "test: ${{ toJson(github.event) }}"
 
       - name: Set startedAt
         id: set_startedAt
@@ -40,122 +52,125 @@ jobs:
         run: |
           echo "::set-output name=status::complete"
 
-      #- name: Use Node.js
-      #  uses: actions/setup-node@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v2
 
-      #- name: Creating GitHub Organization Repository
-      #  id: create-repo
-      #  run: |
-      #    repoName="${{ github.event.inputs.repoName }}"
-      #    orgAdminToken="${{ github.event.inputs.gitToken }}"
+      - name: Creating GitHub Organization Repository
+        id: create-repo
+        run: |
+          repoName="${{ github.event.inputs.repoName }}"
+          orgAdminToken="${{ github.event.inputs.gitToken }}"
+          autoInit="${{ github.event.inputs.autoInit }}" 
+          private="${{ github.event.inputs.private }}" 
+          repoDescr="${{ github.event.inputs.repoDescr }}" 
 
-      #    response=$(curl -X POST -H "Authorization: $orgAdminToken" \
-      #      -H "Accept: application/vnd.github.v3+json" \
-      #      -d '{
-      #        "name": "'"$repoName"'"
-      #      }' \
-      #      https://api.github.com/user/repos)
+          response=$(curl -X POST -H "Authorization: $orgAdminToken" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "name": "'"$repoName"'", "description": "'"$repoDescr"'", "private": "'"$private"'", "auto_init": "'"$autoInit"'"
+            }' \
+            https://api.github.com/user/repos)
 
-      #    echo "API Response: $response"
+          echo "API Response: $response"
 
-      #    repoId=$(echo "$response" | jq -r '.id')
-      #    repoFullName=$(echo "$response" | jq -r '.full_name')
-      #    repoUrl=$(echo "$response" | jq -r '.html_url')
+          repoId=$(echo "$response" | jq -r '.id')
+          repoFullName=$(echo "$response" | jq -r '.full_name')
+          repoUrl=$(echo "$response" | jq -r '.html_url')
 
-      #    if [[ -n "$repoUrl" ]]; then
-      #      echo "::set-output name=repo-url::$repoUrl"
-      #    else
-      #      echo "::error::Failed to create repository"
-      #      echo "::set-output name=status::failed"
-      #    fi
+          if [[ -n "$repoUrl" ]]; then
+            echo "::set-output name=repo-url::$repoUrl"
+          else
+            echo "::error::Failed to create repository"
+            echo "::set-output name=status::failed"
+          fi
 
-      #    if [[ -n "$repoId" ]]; then
-      #      echo "::set-output name=repo-id::$repoId"
-      #    else
-      #      echo "::error::Failed to create repository"
-      #      echo "::set-output name=status::failed"
-      #    fi
+          if [[ -n "$repoId" ]]; then
+            echo "::set-output name=repo-id::$repoId"
+          else
+            echo "::error::Failed to create repository"
+            echo "::set-output name=status::failed"
+          fi
 
-      #    if [[ -n "$repoFullName" ]]; then
-      #      echo "::set-output name=repo-full-name::$repoFullName"
-      #    else
-      #      echo "::error::Failed to retrieve repository full name"
-      #      echo "::set-output name=status::failed"
-      #    fi
+          if [[ -n "$repoFullName" ]]; then
+            echo "::set-output name=repo-full-name::$repoFullName"
+          else
+            echo "::error::Failed to retrieve repository full name"
+            echo "::set-output name=status::failed"
+          fi
 
-      #- name: Log URL to the repo
-      #  run: 
-      #    echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
-      #    echo "The new repo is $repoUrl"
+      - name: Log URL to the repo
+        run: 
+          echo "The new repo is ${{ steps.create-repo.outputs.repo-url }}"
+          echo "The new repo is $repoUrl"
 
-      #- name: Send POST request to create repo
-      #  id: create-c8-repo
-      #  run: |
-      #    API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
-      #    NAME="${{ github.event.inputs.repoName }}"
-      #    URL="${{ steps.create-repo.outputs.repo-url }}"
-      #    PROVIDER="GitHub"
-      #    PROVIDER_RESOURCE_KEY="${{ steps.create-repo.outputs.repo-id }}"
-      #    PROVIDER_ACCOUNT_ID="${{ github.actor }}"
-      #    LOCATION="${{ steps.create-repo.outputs.repo-full-name }}"
+      - name: Send POST request to create repo
+        id: create-c8-repo
+        run: |
+          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          NAME="${{ github.event.inputs.repoName }}"
+          URL="${{ steps.create-repo.outputs.repo-url }}"
+          PROVIDER="GitHub"
+          PROVIDER_RESOURCE_KEY="${{ steps.create-repo.outputs.repo-id }}"
+          PROVIDER_ACCOUNT_ID="${{ github.actor }}"
+          LOCATION="${{ steps.create-repo.outputs.repo-full-name }}"
 
-      #    response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
-      #      -d '{
-      #        "name": "'"$NAME"'",
-      #        "url": "'"$URL"'",
-      #        "provider": "'"$PROVIDER"'",
-      #        "providerResourceKey": "'"$PROVIDER_RESOURCE_KEY"'",
-      #        "providerAccountId": "'"$PROVIDER_ACCOUNT_ID"'",
-      #        "location": "'"$LOCATION"'"
-      #      }' \
-      #      https://qa.configure8.io/public/v1/catalog/entities/repository)
-      #    
-      #    echo "API Response: $response"
+          response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
+            -d '{
+              "name": "'"$NAME"'",
+              "url": "'"$URL"'",
+              "provider": "'"$PROVIDER"'",
+              "providerResourceKey": "'"$PROVIDER_RESOURCE_KEY"'",
+              "providerAccountId": "'"$PROVIDER_ACCOUNT_ID"'",
+              "location": "'"$LOCATION"'"
+            }' \
+            https://qa.configure8.io/public/v1/catalog/entities/repository)
+          
+          echo "API Response: $response"
 
-      #    repositoryId=$(echo "$response" | jq -r '.id')
+          repositoryId=$(echo "$response" | jq -r '.id')
 
-      #    if [[ -n "$repositoryId" ]]; then
-      #      echo "::set-output name=repository-id::$repositoryId"
-      #    else
-      #      echo "::error::Failed to create c8 repository"
-      #      echo "::set-output name=status::failed"
-      #    fi
-     # 
-      #- name: Send POST request to create service
-      #  run: |
-      #    API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
-      #    NAME="${{ github.event.inputs.repoName }}"
-      #    REPOSITORYID="${{ steps.create-c8-repo.outputs.repository-id }}"
+          if [[ -n "$repositoryId" ]]; then
+            echo "::set-output name=repository-id::$repositoryId"
+          else
+            echo "::error::Failed to create c8 repository"
+            echo "::set-output name=status::failed"
+          fi
+      
+      - name: Send POST request to create service
+        run: |
+          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          NAME="${{ github.event.inputs.repoName }}"
+          REPOSITORYID="${{ steps.create-c8-repo.outputs.repository-id }}"
 
-      #    response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
-      #      -d '{
-      #        "name": "'"$NAME"'",
-      #        "repositoryId": "'"$REPOSITORYID"'"
-      #      }' \
-      #      https://qa.configure8.io/public/v1/catalog/entities/service)
-      #    
-      #    echo "API Response: $response"
-     # 
+          response=$(curl -X POST -H "Content-Type: application/json" -H "api-key: $API_KEY" \
+            -d '{
+              "name": "'"$NAME"'",
+              "repositoryId": "'"$REPOSITORYID"'"
+            }' \
+            https://qa.configure8.io/public/v1/catalog/entities/service)
+          
+          echo "API Response: $response"
+      
 
-      #- name: Set completedAt
-      #  id: set_completedAt
-      #  run: |
-      #    echo "::set-output name=completedAt::$(node -e 'console.log(new Date().toISOString())')"
+      - name: Set completedAt
+        id: set_completedAt
+        run: |
+          echo "::set-output name=completedAt::$(node -e 'console.log(new Date().toISOString())')"
 
-      #- name: Send results over HTTP
-      #  run: |
-      #    token="${{ github.event.inputs.c8-report-token }}"
-      #    reportUrl="${{ github.event.inputs.reportUrl }}"
-      #    status="${{ steps.status.outputs.status }}"
-      #    startedAt="${{ steps.set_startedAt.outputs.startedAt }}"
-      #    completedAt="${{ steps.set_completedAt.outputs.completedAt }}"
+      - name: Send results over HTTP
+        run: |
+          token="${{ github.event.inputs.c8-report-token }}"
+          reportUrl="${{ github.event.inputs.reportUrl }}"
+          status="${{ steps.status.outputs.status }}"
+          startedAt="${{ steps.set_startedAt.outputs.startedAt }}"
+          completedAt="${{ steps.set_completedAt.outputs.completedAt }}"
 
-      #    # Report SSA result
-      #    if ! curl -X POST \
-      #      -H "c8-report-token: $token" \
-      #      -H "Content-Type: application/json" \
-      #      -d "{\"status\": \"$status\", \"startedAt\": \"$startedAt\", \"completedAt\": \"$completedAt\"}" \
-      #      "$reportUrl"; then
-      #      echo "Failed to send results over HTTP"
-      #      exit 1
-      #    fi
+          # Report SSA result
+          if ! curl -X POST \
+            -H "c8-report-token: $token" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\": \"$status\", \"startedAt\": \"$startedAt\", \"completedAt\": \"$completedAt\"}" \
+            "$reportUrl"; then
+            echo "Failed to send results over HTTP"
+            exit 1
+          fi
