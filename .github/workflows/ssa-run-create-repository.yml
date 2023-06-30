@@ -16,10 +16,6 @@ on:
         description: 'Name of the repository to be created'
         required: true
         default: ''
-      test: 
-        description: ''
-        required: true
-        default: ''
 
 jobs:
   create_repo_job:
@@ -32,7 +28,6 @@ jobs:
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
           echo "Git token: ${{ github.event.inputs.gitToken }}"
-          echo "test value: ${{ github.event.inputs.test }}"
           echo "test: ${{ github.event }}"
 
       - name: Set startedAt
