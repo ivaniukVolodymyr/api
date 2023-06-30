@@ -28,7 +28,7 @@ jobs:
           echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
           echo "Git token: ${{ github.event.inputs.gitToken }}"
-          echo "test: ${{ github.event }}"
+          echo "test: ${{ toJson(github.event) }}"
 
       - name: Set startedAt
         id: set_startedAt
