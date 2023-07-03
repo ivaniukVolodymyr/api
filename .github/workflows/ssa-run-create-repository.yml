@@ -12,6 +12,9 @@ on:
       gitToken:
         description: Token
         required: true
+      orgApiKey:
+        description: Token
+        required: true        
       repoName: 
         description: 'Name of the repository to be created'
         required: true
@@ -22,11 +25,11 @@ on:
         default: ''
       private: 
         description: 'private repository'
-        required: true
+        required: false
         default: false
       autoInit: 
         description: 'Create README file'
-        required: true
+        required: false
         default: false
 
 
@@ -106,7 +109,7 @@ jobs:
       - name: Send POST request to create repo
         id: create-c8-repo
         run: |
-          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          API_KEY="${{ github.event.inputs.orgApiKey }}"
           NAME="${{ github.event.inputs.repoName }}"
           URL="${{ steps.create-repo.outputs.repo-url }}"
           PROVIDER="GitHub"
@@ -138,7 +141,7 @@ jobs:
       
       - name: Send POST request to create service
         run: |
-          API_KEY="c8ak_f7f315194c0c4c6483a72531c4b86383_706581e9"
+          API_KEY="${{ github.event.inputs.orgApiKey }}"
           NAME="${{ github.event.inputs.repoName }}"
           REPOSITORYID="${{ steps.create-c8-repo.outputs.repository-id }}"
 
