@@ -1,0 +1,72 @@
+name: 'Create 1000 Repositories'
+
+on:
+  workflow_dispatch:
+    inputs:
+      c8-report-token:
+        description: Report token
+        required: true
+      gitToken:
+        description: Token
+        required: true     
+      repoName: 
+        description: 'Name of the repository to be created'
+        required: true
+        default: ''
+      repoDescr: 
+        description: 'Description of the repository to be created'
+        required: false
+        default: ''
+
+
+jobs:
+  create_repo_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print parameters
+        run: |
+          echo "Token: ${{ github.event.inputs.c8-report-token }}"
+          echo "Report URL: ${{ github.event.inputs.reportUrl }}"
+          echo "Repository name: ${{ github.event.inputs.repoName }}"
+          echo "Git token: ${{ github.event.inputs.gitToken }}"
+
+      - name: Set startedAt
+        id: set_startedAt
+        run: |
+          echo "::set-output name=startedAt::$(node -e 'console.log(new Date().toISOString())')"
+
+      - name: Set default status
+        id: status
+        run: |
+          echo "::set-output name=status::complete"
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - name: Creating GitHub Repository
+        id: create-repo
+        run: |
+          
+          orgAdminToken="${{ github.event.inputs.gitToken }}"
+          autoInit=false
+          private=false 
+          repoDescr="test 1000" 
+          for ((i=1; i<=10; i++)); do
+            repoName="${{ github.event.inputs.repoName }}$i"
+            response=$(curl -X POST -H "Authorization: $orgAdminToken" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d '{
+                "name": "'"$repoName"'", "description": "'"$repoDescr"'", "private": "'"$private"'", "auto_init": "'"$autoInit"'"
+              }' \
+              https://api.github.com/user/repos)
+            # ... process the response or perform other actions ...
+          done
+          
+          echo "API Response: $response"
+
+          repoId=$(echo "$response" | jq -r '.id')
+          repoFullName=$(echo "$response" | jq -r '.full_name')
+          repoUrl=$(echo "$response" | jq -r '.html_url')
+
+          
