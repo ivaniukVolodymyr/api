@@ -41,7 +41,7 @@ jobs:
               }' \
               https://api.github.com/user/repos)
             # ... process the response or perform other actions ...
-            sleep 5
+            
           done
           
           echo "DONE"
