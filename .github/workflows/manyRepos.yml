@@ -41,6 +41,7 @@ jobs:
               }' \
               https://api.github.com/user/repos)
             # ... process the response or perform other actions ...
+            echo "API Response: $response"
           done
           
           echo "DONE"
