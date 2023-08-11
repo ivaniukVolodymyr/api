@@ -1,0 +1,45 @@
+name: 'Delete 1000 Repositories'
+
+on:
+  workflow_dispatch:
+    inputs:
+      gitToken:
+        description: Token
+        required: true     
+      repoName: 
+        description: 'Name of the repository to be created'
+        required: true
+        default: ''
+
+jobs:
+  create_repo_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print parameters
+        run: |
+          echo "Repository name: ${{ github.event.inputs.repoName }}"
+          echo "Git token: ${{ github.event.inputs.gitToken }}"
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - name: Creating GitHub Repository
+        id: create-repo
+        run: |
+          
+          orgAdminToken="${{ github.event.inputs.gitToken }}"
+          autoInit=false
+          private=false 
+          repoDescr="test 1000" 
+          for ((i=1; i<=10; i++)); do
+            repoName="${{ github.event.inputs.repoName }}$i"
+            response=$(curl -X DELETE -H "Authorization: $orgAdminToken" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/user/repos/$repoName)
+            # ... process the response or perform other actions ...
+            echo "API Response: $response"
+          done
+          
+          echo "DONE"
+          
