@@ -36,7 +36,7 @@ jobs:
             repoName="${{ github.event.inputs.repoName }}$i"
             response=$(curl -X DELETE -H "Authorization: $orgAdminToken" \
               -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/user/repos/$repoName)
+              https://api.github.com/repos/ivaniukVolodymyr/$repoName)
             # ... process the response or perform other actions ...
             echo "API Response: $response"
           done
