@@ -32,13 +32,12 @@ jobs:
           autoInit=false
           private=false 
           repoDescr="test 1000" 
-          for ((i=1; i<=10; i++)); do
+          for ((i=1; i<=1000; i++)); do
             repoName="${{ github.event.inputs.repoName }}$i"
             response=$(curl -X DELETE -H "Authorization: $orgAdminToken" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/ivaniukVolodymyr/$repoName)
             # ... process the response or perform other actions ...
-            echo "API Response: $response"
           done
           
           echo "DONE"
