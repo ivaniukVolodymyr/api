@@ -32,7 +32,7 @@ jobs:
           autoInit=false
           private=false 
           repoDescr="test 1000" 
-          for ((i=201; i<=300; i++)); do
+          for ((i=1; i<=150; i++)); do
             repoName="${{ github.event.inputs.repoName }}$i"
             response=$(curl -X POST -H "Authorization: $orgAdminToken" \
               -H "Accept: application/vnd.github.v3+json" \
