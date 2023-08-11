@@ -3,9 +3,6 @@ name: 'Create 1000 Repositories'
 on:
   workflow_dispatch:
     inputs:
-      c8-report-token:
-        description: Report token
-        required: true
       gitToken:
         description: Token
         required: true     
@@ -13,11 +10,6 @@ on:
         description: 'Name of the repository to be created'
         required: true
         default: ''
-      repoDescr: 
-        description: 'Description of the repository to be created'
-        required: false
-        default: ''
-
 
 jobs:
   create_repo_job:
@@ -26,20 +18,8 @@ jobs:
     steps:
       - name: Print parameters
         run: |
-          echo "Token: ${{ github.event.inputs.c8-report-token }}"
-          echo "Report URL: ${{ github.event.inputs.reportUrl }}"
           echo "Repository name: ${{ github.event.inputs.repoName }}"
           echo "Git token: ${{ github.event.inputs.gitToken }}"
-
-      - name: Set startedAt
-        id: set_startedAt
-        run: |
-          echo "::set-output name=startedAt::$(node -e 'console.log(new Date().toISOString())')"
-
-      - name: Set default status
-        id: status
-        run: |
-          echo "::set-output name=status::complete"
 
       - name: Use Node.js
         uses: actions/setup-node@v2
@@ -63,10 +43,5 @@ jobs:
             # ... process the response or perform other actions ...
           done
           
-          echo "API Response: $response"
-
-          repoId=$(echo "$response" | jq -r '.id')
-          repoFullName=$(echo "$response" | jq -r '.full_name')
-          repoUrl=$(echo "$response" | jq -r '.html_url')
-
+          echo "DONE"
           
