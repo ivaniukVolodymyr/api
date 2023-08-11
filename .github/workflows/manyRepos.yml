@@ -30,14 +30,14 @@ jobs:
           
           orgAdminToken="${{ github.event.inputs.gitToken }}"
           autoInit=false
-          private=false 
+          private=false
           repoDescr="test 1000" 
           for ((i=1; i<=150; i++)); do
             repoName="${{ github.event.inputs.repoName }}$i"
             response=$(curl -X POST -H "Authorization: $orgAdminToken" \
               -H "Accept: application/vnd.github.v3+json" \
               -d '{
-                "name": "'"$repoName"'", "description": "'"$repoDescr"'", "private": "'"$private"'", "auto_init": "'"$autoInit"'"
+                "name": "'"$repoName"'", "description": "'"$repoDescr"'", "private": false, "auto_init": "'"$autoInit"'"
               }' \
               https://api.github.com/user/repos)
             # ... process the response or perform other actions ...
